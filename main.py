@@ -27,8 +27,10 @@ def get_done_users():
 
 
 def update_user_fail(failed_users):
-    ''' Those users whose profile is not present
-    are added into this file.'''
+    '''
+    Those users whose profile is not present
+    are added into this file.
+    '''
     with open(USERS_NOT_PRESENT, 'wb') as file_handler:
         pickle.dump(failed_users, file_handler)
 
@@ -52,23 +54,19 @@ if __name__ == '__main__':
     user_count = 0
     for user in screen_names:
         try:
-            # Skip the user if it is already been searched
             user_count += 1
-            if user in done_users:
-                continue
-            export_obj = ExportTweets(user, logging)
-            tweets = export_obj.get_user_tweets()
-            # if the user does not exist, tweets are false not empty
-            # Coz there can be a user with no statuses
-            if tweets is None:
-                failed_users.add(user)
-                update_user_fail(failed_users)
-                continue
-            save_to_db(tweets)
-            # Register the user
-            done_users.add(user)
-            update_done_users(done_users)
-            print('Total number of users processed:- ' + str(user_count))
-            print('Tweets fetched for screen name:- ' + user)
+            if user not in done_users:
+                export_obj = ExportTweets(user, logging)
+                tweets = export_obj.get_user_tweets()
+                # Tweets are false not empty for non existing users
+                if tweets is None:
+                    failed_users.add(user)
+                    update_user_fail(failed_users)
+                    continue
+                save_to_db(tweets)
+                done_users.add(user)
+                update_done_users(done_users)
+                print('Total number of users processed:- ' + str(user_count))
+                print('Tweets fetched for screen name:- ' + user)
         except Exception as e:
             logging.error('User Id failed:- ' + user)
